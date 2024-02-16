@@ -35,12 +35,13 @@ namespace DAQFunctionGenerator
             // Chart setup
             chWaveform.Titles.Add("Waveform");
             chWaveform.Series.Add("Waveform");
-            chWaveform.Series["Waveform"].ChartType = System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            chWaveform.Series["Waveform"].ChartType =
+                System.Windows.Forms.DataVisualization.Charting.SeriesChartType.Line;
+            chWaveform.Series["Waveform"].BorderWidth = 3;
+            chWaveform.Series["Waveform"].Color = Color.BlueViolet;
             chWaveform.Legends.Clear();
             chWaveform.ChartAreas[0].AxisX.Title = "Time (s)";
             chWaveform.ChartAreas[0].AxisY.Title = "Voltage (V)";
-
-            funcGen.GenerateWaveform();
 
             // Device combo box settings
             cboChannel.DropDownStyle = ComboBoxStyle.DropDownList;
@@ -134,6 +135,7 @@ namespace DAQFunctionGenerator
         {
             if (cboWaveform.SelectedItem is WaveShape)
             {
+                funcGen.WaveShape = (WaveShape)cboWaveform.SelectedItem;
                 switch (funcGen.WaveShape)
                 {
                     case WaveShape.Sine:

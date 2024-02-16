@@ -42,21 +42,30 @@ namespace DAQFunctionGenerator
 
             this.WaveData = new double[this.SampleCount];
             double y;
+            Func<int, double> waveFunction;
+
+            switch (this.WaveShape)
+            {
+                case WaveShape.Sine:
+                    waveFunction = SineFunction;
+                    break;
+                case WaveShape.Square:
+                    waveFunction = SquareFunction;
+                    break;
+                case WaveShape.Triangle:
+                    waveFunction = TriangleFunction;
+                    break;
+                case WaveShape.Sawtooth:
+                    waveFunction = SawtoothFunction;
+                    break;
+                default:
+                    waveFunction = TTLFunction;
+                    break;
+            }
 
             for (int i = 0; i < this.SampleCount; i++)
             {
-                switch (this.WaveShape)
-                {
-                    case WaveShape.Sine:
-                        y = SineFunction(i);
-                        break;
-                    case WaveShape.Square:
-                        y = SquareFunction(i);
-                        break;
-                    default:
-                        y = 0.0;
-                        break;
-                }
+                y = waveFunction(i);
 
                 // Clip all functions to +/- 10V
                 if (y > 10.0) y = 10.0;
@@ -73,8 +82,45 @@ namespace DAQFunctionGenerator
 
         private double SquareFunction(int i)
         {
-            if (i < this.SampleCount / 2) return -this.Amplitude + this.DCOffset;
-            else return this.Amplitude + this.DCOffset;
+            if (i < this.SampleCount * (double)this.DutyCycle / 100)
+                return this.Amplitude + this.DCOffset;
+            else return -this.Amplitude + this.DCOffset;
+        }
+
+        private double TriangleFunction(int i)
+        {
+            double d = (double)this.DutyCycle / 100;
+            double lambda = this.SampleCount;
+            double r = d * lambda;
+            double A = this.Amplitude;
+            double t1 = r / 2;
+            double t2 = lambda / 2;
+            double t3 = lambda - t1;
+
+            if (i < t1)
+            {
+                return 2 * A / r * i + this.DCOffset;
+            }
+            else if (i < t3)
+            {
+                return - 2 * A / (lambda - r) * i + A / (1 - d) + this.DCOffset;
+            }
+            else
+            {
+                return 2 * A / r * i - 2 * A / d + this.DCOffset;
+            }
+        }
+
+        private double SawtoothFunction(int i)
+        {
+            return 2 * this.Amplitude / this.SampleCount * i - this.Amplitude + this.DCOffset;
+        }
+
+        private double TTLFunction(int i)
+        {
+            if (i < this.SampleCount * (double)this.DutyCycle / 100)
+                return 5.0;
+            else return 0.0;
         }
     }
 
