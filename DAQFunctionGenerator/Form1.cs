@@ -59,25 +59,25 @@ namespace DAQFunctionGenerator
             }
 
             // Amplitude updown box settings
+            updAmplitude.Value = (decimal)funcGen.Amplitude;
             updAmplitude.DecimalPlaces = 2;
             updAmplitude.Minimum = 0;
             updAmplitude.Maximum = 10;
             updAmplitude.Increment = 0.01M;
-            updAmplitude.Value = (decimal)funcGen.Amplitude;
 
             // DC Offset updown box settings
+            updDCOffset.Value = (decimal)funcGen.DCOffset;
             updDCOffset.DecimalPlaces = 2;
             updDCOffset.Minimum = -10;
             updDCOffset.Maximum = 10;
             updDCOffset.Increment = 0.01M;
-            updDCOffset.Value = (decimal)funcGen.DCOffset;
 
             // Duty Cycle updown box settings
+            updDutyCycle.Value = funcGen.DutyCycle;
             updDutyCycle.DecimalPlaces = 0;
             updDutyCycle.Minimum = 1;
             updDutyCycle.Maximum = 99;
             updDutyCycle.Increment = 1;
-            updDutyCycle.Value = funcGen.DutyCycle;
 
             // Waveform combo box settings
             cboWaveform.DropDownStyle = ComboBoxStyle.DropDownList;
@@ -91,11 +91,11 @@ namespace DAQFunctionGenerator
             cboWaveform.SelectedIndex = 0;
 
             // Frequency updown box settings
+            updFrequency.Value = funcGen.Frequency;
             updFrequency.DecimalPlaces = 0;
             updFrequency.Minimum = 1;
             updFrequency.Maximum = 100000;
             updFrequency.Increment = 1;
-            updFrequency.Value = funcGen.Frequency;
         }
 
         private void BtnStartStopToggle(bool startStop)
@@ -170,6 +170,37 @@ namespace DAQFunctionGenerator
             {
                 chWaveform.Series["Waveform"].Points.Add(funcGen.WaveData[i]);
             }
+
+            // Value output
+            lblActualFrequencyNum.Text = $"{funcGen.ActualFrequency:0.0000} Hz";
+        }
+
+        private void UpdFrequency_ValueChanged(object sender, EventArgs e)
+        {
+            funcGen.Frequency = (int)updFrequency.Value;
+
+            InputChanged();
+        }
+
+        private void UpdDutyCycle_ValueChanged(object sender, EventArgs e)
+        {
+            funcGen.DutyCycle = (int)updDutyCycle.Value;
+
+            InputChanged();
+        }
+
+        private void UpdAmplitude_ValueChanged(object sender, EventArgs e)
+        {
+            funcGen.Amplitude = (double)updAmplitude.Value;
+
+            InputChanged();
+        }
+
+        private void UpdDCOffset_ValueChanged(object sender, EventArgs e)
+        {
+            funcGen.DCOffset = (double)updDCOffset.Value;
+
+            InputChanged();
         }
     }
 }

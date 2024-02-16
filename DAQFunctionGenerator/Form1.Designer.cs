@@ -28,9 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
-            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea1 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
-            System.Windows.Forms.DataVisualization.Charting.Legend legend1 = new System.Windows.Forms.DataVisualization.Charting.Legend();
-            System.Windows.Forms.DataVisualization.Charting.Series series1 = new System.Windows.Forms.DataVisualization.Charting.Series();
+            System.Windows.Forms.DataVisualization.Charting.ChartArea chartArea6 = new System.Windows.Forms.DataVisualization.Charting.ChartArea();
+            System.Windows.Forms.DataVisualization.Charting.Legend legend6 = new System.Windows.Forms.DataVisualization.Charting.Legend();
+            System.Windows.Forms.DataVisualization.Charting.Series series6 = new System.Windows.Forms.DataVisualization.Charting.Series();
             this.cboChannel = new System.Windows.Forms.ComboBox();
             this.cboWaveform = new System.Windows.Forms.ComboBox();
             this.updAmplitude = new System.Windows.Forms.NumericUpDown();
@@ -45,7 +45,7 @@
             this.lblWaveform = new System.Windows.Forms.Label();
             this.lblFrequency = new System.Windows.Forms.Label();
             this.lblActualFrequency = new System.Windows.Forms.Label();
-            this.label8 = new System.Windows.Forms.Label();
+            this.lblActualFrequencyNum = new System.Windows.Forms.Label();
             this.lblAmplitudeUnit = new System.Windows.Forms.Label();
             this.lblDCOffsetUnit = new System.Windows.Forms.Label();
             this.lblDutyCycleUnit = new System.Windows.Forms.Label();
@@ -82,6 +82,7 @@
             this.updAmplitude.Name = "updAmplitude";
             this.updAmplitude.Size = new System.Drawing.Size(73, 20);
             this.updAmplitude.TabIndex = 2;
+            this.updAmplitude.ValueChanged += new System.EventHandler(this.UpdAmplitude_ValueChanged);
             // 
             // updDCOffset
             // 
@@ -89,6 +90,7 @@
             this.updDCOffset.Name = "updDCOffset";
             this.updDCOffset.Size = new System.Drawing.Size(73, 20);
             this.updDCOffset.TabIndex = 3;
+            this.updDCOffset.ValueChanged += new System.EventHandler(this.UpdDCOffset_ValueChanged);
             // 
             // updDutyCycle
             // 
@@ -96,6 +98,7 @@
             this.updDutyCycle.Name = "updDutyCycle";
             this.updDutyCycle.Size = new System.Drawing.Size(73, 20);
             this.updDutyCycle.TabIndex = 4;
+            this.updDutyCycle.ValueChanged += new System.EventHandler(this.UpdDutyCycle_ValueChanged);
             // 
             // updFrequency
             // 
@@ -103,6 +106,7 @@
             this.updFrequency.Name = "updFrequency";
             this.updFrequency.Size = new System.Drawing.Size(73, 20);
             this.updFrequency.TabIndex = 5;
+            this.updFrequency.ValueChanged += new System.EventHandler(this.UpdFrequency_ValueChanged);
             // 
             // btnStartStop
             // 
@@ -177,14 +181,14 @@
             this.lblActualFrequency.TabIndex = 13;
             this.lblActualFrequency.Text = "Actual Frequency:";
             // 
-            // label8
+            // lblActualFrequencyNum
             // 
-            this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(159, 312);
-            this.label8.Name = "label8";
-            this.label8.Size = new System.Drawing.Size(35, 13);
-            this.label8.TabIndex = 14;
-            this.label8.Text = "label8";
+            this.lblActualFrequencyNum.Location = new System.Drawing.Point(117, 312);
+            this.lblActualFrequencyNum.Name = "lblActualFrequencyNum";
+            this.lblActualFrequencyNum.Size = new System.Drawing.Size(90, 13);
+            this.lblActualFrequencyNum.TabIndex = 14;
+            this.lblActualFrequencyNum.Text = "label8";
+            this.lblActualFrequencyNum.TextAlign = System.Drawing.ContentAlignment.TopRight;
             // 
             // lblAmplitudeUnit
             // 
@@ -224,16 +228,16 @@
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
             this.chWaveform.BackColor = System.Drawing.Color.Transparent;
-            chartArea1.Name = "ChartArea1";
-            this.chWaveform.ChartAreas.Add(chartArea1);
-            legend1.Name = "Legend1";
-            this.chWaveform.Legends.Add(legend1);
+            chartArea6.Name = "ChartArea1";
+            this.chWaveform.ChartAreas.Add(chartArea6);
+            legend6.Name = "Legend1";
+            this.chWaveform.Legends.Add(legend6);
             this.chWaveform.Location = new System.Drawing.Point(229, 12);
             this.chWaveform.Name = "chWaveform";
-            series1.ChartArea = "ChartArea1";
-            series1.Legend = "Legend1";
-            series1.Name = "Series1";
-            this.chWaveform.Series.Add(series1);
+            series6.ChartArea = "ChartArea1";
+            series6.Legend = "Legend1";
+            series6.Name = "Series1";
+            this.chWaveform.Series.Add(series6);
             this.chWaveform.Size = new System.Drawing.Size(467, 323);
             this.chWaveform.TabIndex = 20;
             this.chWaveform.Text = "chart1";
@@ -248,7 +252,7 @@
             this.Controls.Add(this.lblDutyCycleUnit);
             this.Controls.Add(this.lblDCOffsetUnit);
             this.Controls.Add(this.lblAmplitudeUnit);
-            this.Controls.Add(this.label8);
+            this.Controls.Add(this.lblActualFrequencyNum);
             this.Controls.Add(this.lblActualFrequency);
             this.Controls.Add(this.lblFrequency);
             this.Controls.Add(this.lblWaveform);
@@ -292,7 +296,7 @@
         private System.Windows.Forms.Label lblWaveform;
         private System.Windows.Forms.Label lblFrequency;
         private System.Windows.Forms.Label lblActualFrequency;
-        private System.Windows.Forms.Label label8;
+        private System.Windows.Forms.Label lblActualFrequencyNum;
         private System.Windows.Forms.Label lblAmplitudeUnit;
         private System.Windows.Forms.Label lblDCOffsetUnit;
         private System.Windows.Forms.Label lblDutyCycleUnit;

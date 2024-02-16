@@ -9,7 +9,8 @@ namespace DAQFunctionGenerator
 {
     internal class FunctionGeneratorSettings
     {
-        public static double MAX_AD_RATE = 833000.0;
+        public static double MAX_AD_RATE = 833000.0; // from datasheet
+        public static int MAX_SAMPLE_COUNT = 10000; // for performance
 
         public string Device { get; set; }
         public double Amplitude { get; set; }
@@ -37,6 +38,7 @@ namespace DAQFunctionGenerator
         public void GenerateWaveform()
         {
             this.SampleCount = (int)MAX_AD_RATE / this.Frequency;
+            if (this.SampleCount > MAX_SAMPLE_COUNT) this.SampleCount = MAX_SAMPLE_COUNT;
             this.Wavelength = 1.0 / this.Frequency;
             this.ActualFrequency = MAX_AD_RATE / this.SampleCount;
 
@@ -94,7 +96,6 @@ namespace DAQFunctionGenerator
             double r = d * lambda;
             double A = this.Amplitude;
             double t1 = r / 2;
-            double t2 = lambda / 2;
             double t3 = lambda - t1;
 
             if (i < t1)
