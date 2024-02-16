@@ -1,4 +1,5 @@
-﻿using System;
+﻿using NationalInstruments.DAQmx;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -7,10 +8,10 @@ using System.Threading.Tasks;
 
 namespace DAQFunctionGenerator
 {
-    internal class FunctionGeneratorSettings
+    internal class FunctionGenerator
     {
         public static double MAX_AD_RATE = 833000.0; // from datasheet
-        public static int MAX_SAMPLE_COUNT = 10000; // for performance
+        public static int MAX_SAMPLE_COUNT = 10000; // for performance reasons
 
         public string Device { get; set; }
         public double Amplitude { get; set; }
@@ -18,14 +19,18 @@ namespace DAQFunctionGenerator
         public int DutyCycle { get; set; }
         public WaveShape WaveShape { get; set; }
         public int Frequency { get; set; }
+        public bool On { get; set; }
 
         // Read-only waveform setup values set by GenerateWaveform
         private int SampleCount;
         public double Wavelength { get; private set; }
         public double ActualFrequency { get; private set; }
         public double[] WaveData { get; private set; }
+        private double MinimumVoltage;
+        private double MaximumVoltage;
 
-        public FunctionGeneratorSettings() {
+
+        public FunctionGenerator() {
             // Set default settings
             this.Device = string.Empty;
             this.Amplitude = 1.0;
@@ -33,6 +38,22 @@ namespace DAQFunctionGenerator
             this.DutyCycle = 50;
             this.WaveShape = WaveShape.Sine;
             this.Frequency = 100;
+            this.On = false;
+        }
+
+        /* Begin outputting signal to given channel
+         */
+        public void Start(NationalInstruments.DAQmx.Task aoTask, string channel)
+        {
+            this.On = true;
+            aoTask.AOChannels.CreateVoltageChannel(channel, string.Empty,
+                this.MinimumVoltage, this.MaximumVoltage, AOVoltageUnits.Volts);
+        }
+
+        public void Stop(NationalInstruments.DAQmx.Task aoTask)
+        {
+            this.On = false;
+            aoTask.Stop();
         }
 
         public void GenerateWaveform()
@@ -41,6 +62,10 @@ namespace DAQFunctionGenerator
             if (this.SampleCount > MAX_SAMPLE_COUNT) this.SampleCount = MAX_SAMPLE_COUNT;
             this.Wavelength = 1.0 / this.Frequency;
             this.ActualFrequency = MAX_AD_RATE / this.SampleCount;
+            this.MinimumVoltage = -this.Amplitude + this.DCOffset < -10.0 ?
+                -10.0 : this.Amplitude + this.DCOffset;
+            this.MaximumVoltage = this.Amplitude + this.DCOffset > 10.0 ?
+                10.0 : this.Amplitude + this.DCOffset;
 
             this.WaveData = new double[this.SampleCount];
             double y;
@@ -60,7 +85,7 @@ namespace DAQFunctionGenerator
                 case WaveShape.Sawtooth:
                     waveFunction = SawtoothFunction;
                     break;
-                default:
+                default: // TTL
                     waveFunction = TTLFunction;
                     break;
             }

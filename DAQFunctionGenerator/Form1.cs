@@ -17,7 +17,10 @@ namespace DAQFunctionGenerator
 
     public partial class Frm1 : Form
     {
-        private FunctionGeneratorSettings funcGen = new FunctionGeneratorSettings();
+        private FunctionGenerator funcGen = new FunctionGenerator();
+
+        private NationalInstruments.DAQmx.Task analogWriteTask = new NationalInstruments.DAQmx.Task();
+        private AnalogSingleChannelWriter writer;
 
         public Frm1()
         {
@@ -178,29 +181,40 @@ namespace DAQFunctionGenerator
         private void UpdFrequency_ValueChanged(object sender, EventArgs e)
         {
             funcGen.Frequency = (int)updFrequency.Value;
-
             InputChanged();
         }
 
         private void UpdDutyCycle_ValueChanged(object sender, EventArgs e)
         {
             funcGen.DutyCycle = (int)updDutyCycle.Value;
-
             InputChanged();
         }
 
         private void UpdAmplitude_ValueChanged(object sender, EventArgs e)
         {
             funcGen.Amplitude = (double)updAmplitude.Value;
-
             InputChanged();
         }
 
         private void UpdDCOffset_ValueChanged(object sender, EventArgs e)
         {
             funcGen.DCOffset = (double)updDCOffset.Value;
-
             InputChanged();
+        }
+
+        private void BtnStartStop_Click(object sender, EventArgs e)
+        {
+            switch (funcGen.On)
+            {
+                case true:
+                    BtnStartStopToggle(false);
+                    funcGen.Stop(analogWriteTask);
+                    break;
+                case false:
+                    BtnStartStopToggle(true);
+                    funcGen.Start(analogWriteTask, cboChannel.SelectedItem.ToString());
+                    break;
+            }
         }
     }
 }
