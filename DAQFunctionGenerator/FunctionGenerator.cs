@@ -56,17 +56,6 @@ namespace DAQFunctionGenerator
             {
                 AOTask.AOChannels.CreateVoltageChannel(channel, string.Empty,
                     this.MinimumVoltage, this.MaximumVoltage, AOVoltageUnits.Volts);
-
-                /* Configure task
-                 *  This must be done at this point rather than immediately after
-                 *  creating the task because the device must be known
-                 *  and channels must be present.
-                 */
-                AOTask.Timing.SampleTimingType = SampleTimingType.SampleClock;
-                AOTask.Timing.SampleQuantityMode = SampleQuantityMode.ContinuousSamples;
-                AOTask.AOChannels.All.UseOnlyOnBoardMemory = true;
-
-                writer.WriteMultiSample(false, this.WaveData);
             }
             catch (DaqException ex) 
             {
@@ -77,9 +66,39 @@ namespace DAQFunctionGenerator
                      * This error occurs when the output is started for a second time
                      *  on the same channel, which is acceptable.
                      */
-                    AOTask.Stop();
+                    this.Stop();
                     MessageBox.Show(ex.Message);
                 }
+            }
+
+            try
+            {
+                /* Configure task
+                 *  This must be done at this point rather than immediately after
+                 *  creating the task because the device must be known
+                 *  and channels must be present.
+                 */
+                AOTask.Timing.SampleTimingType = SampleTimingType.SampleClock;
+                AOTask.AOChannels.All.UseOnlyOnBoardMemory = true;
+                AOTask.Timing.ConfigureSampleClock(string.Empty,
+                    this.Frequency * this.SampleCount,
+                    SampleClockActiveEdge.Rising,
+                    SampleQuantityMode.ContinuousSamples,
+                    this.SampleCount);
+                AOTask.Timing.SamplesPerChannel = this.SampleCount;
+
+                // Reconfigure channel
+                AOTask.AOChannels.All.Minimum = this.MinimumVoltage;
+                AOTask.AOChannels.All.Maximum = this.MaximumVoltage;
+
+                // Finally, output waveform to DAQ
+                writer.WriteMultiSample(false, this.WaveData);
+                AOTask.Start();
+            }
+            catch (DaqException ex)
+            {
+                this.Stop();
+                MessageBox.Show(ex.Message);
             }
         }
 
@@ -87,14 +106,27 @@ namespace DAQFunctionGenerator
         {
             this.On = false;
             AOTask.Stop();
+            AnalogSingleChannelWriter zeroWriter = new AnalogSingleChannelWriter(AOTask.Stream);
+            AOTask.AOChannels.All.UseOnlyOnBoardMemory = false;
+            zeroWriter.WriteMultiSample(false, new double[] { 0, 0, 0 });
+            AOTask.Start();
+            AOTask.Stop();
         }
 
         public void GenerateWaveform()
         {
+            // Calculate samples/buffer, and clip if needed
             this.SampleCount = (int)MAX_AD_RATE / this.Frequency;
             if (this.SampleCount > MAX_SAMPLE_COUNT) this.SampleCount = MAX_SAMPLE_COUNT;
+            // Calculate other notable waveform properties
             this.Wavelength = 1.0 / this.Frequency;
             this.ActualFrequency = MAX_AD_RATE / this.SampleCount;
+
+            /* Determine an appropriate min and max voltage, clipped to +/- 10.0V.
+             * This is used for the channel configuration when outputting.
+             * TTL needs a special case of min and max voltage,
+             *  overridden later.
+             */
             this.MinimumVoltage = -this.Amplitude + this.DCOffset < -10.0 ?
                 -10.0 : -this.Amplitude + this.DCOffset;
             this.MaximumVoltage = this.Amplitude + this.DCOffset > 10.0 ?
@@ -120,6 +152,9 @@ namespace DAQFunctionGenerator
                     break;
                 default: // TTL
                     waveFunction = TTLFunction;
+                    // TTL's special case of min and max voltage
+                    this.MinimumVoltage = 0.0;
+                    this.MaximumVoltage = 5.0;
                     break;
             }
 
@@ -134,12 +169,16 @@ namespace DAQFunctionGenerator
             }
         }
 
+        /* Calculates the voltage of a single point of a sine wave
+         *  at a given buffer array index.
+         */
         private double SineFunction(int i)
         {
             return this.DCOffset + this.Amplitude * Math.Sin(
                     2.0 * Math.PI * i / this.SampleCount);
         }
 
+        // Calculates single point of square function
         private double SquareFunction(int i)
         {
             if (i < this.SampleCount * (double)this.DutyCycle / 100)
@@ -147,6 +186,7 @@ namespace DAQFunctionGenerator
             else return -this.Amplitude + this.DCOffset;
         }
 
+        // Calculates single point of triangle function
         private double TriangleFunction(int i)
         {
             double d = (double)this.DutyCycle / 100;
@@ -170,11 +210,13 @@ namespace DAQFunctionGenerator
             }
         }
 
+        // Calculates single point of sawtooth function
         private double SawtoothFunction(int i)
         {
             return 2 * this.Amplitude / this.SampleCount * i - this.Amplitude + this.DCOffset;
         }
 
+        // Calculates single point of TTL function
         private double TTLFunction(int i)
         {
             if (i < this.SampleCount * (double)this.DutyCycle / 100)
