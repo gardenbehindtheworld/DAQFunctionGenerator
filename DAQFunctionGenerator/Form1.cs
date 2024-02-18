@@ -17,10 +17,12 @@ namespace DAQFunctionGenerator
 
     public partial class Frm1 : Form
     {
+        /* Initialize settings object. This allows default values to be stored
+         * and all user-input settings to be stored.
+         * All output controls (and task and writer) are within the FunctionGenerator.
+         */
         private FunctionGenerator funcGen = new FunctionGenerator();
 
-        private NationalInstruments.DAQmx.Task analogWriteTask = new NationalInstruments.DAQmx.Task();
-        private AnalogSingleChannelWriter writer;
 
         public Frm1()
         {
@@ -29,9 +31,6 @@ namespace DAQFunctionGenerator
 
         private void Frm1_Load(object sender, EventArgs e)
         {
-            /* Initialize settings object. This allows default values to be stored
-             * and all user-input settings to be stored.
-             */
 
             BtnStartStopToggle(false);
 
@@ -45,21 +44,6 @@ namespace DAQFunctionGenerator
             chWaveform.Legends.Clear();
             chWaveform.ChartAreas[0].AxisX.Title = "Time (s)";
             chWaveform.ChartAreas[0].AxisY.Title = "Voltage (V)";
-
-            // Device combo box settings
-            cboChannel.DropDownStyle = ComboBoxStyle.DropDownList;
-            cboChannel.Items.AddRange(
-                DaqSystem.Local.GetPhysicalChannels(
-                    PhysicalChannelTypes.AO, PhysicalChannelAccess.External));
-            if (cboChannel.Items.Count > 0)
-            {
-                cboChannel.SelectedIndex = 0;
-            }
-            else
-            {
-                MessageBox.Show("There are no analog output channels available.");
-                SetUserInputPermissions(false);
-            }
 
             // Amplitude updown box settings
             updAmplitude.Value = (decimal)funcGen.Amplitude;
@@ -99,6 +83,59 @@ namespace DAQFunctionGenerator
             updFrequency.Minimum = 1;
             updFrequency.Maximum = 100000;
             updFrequency.Increment = 1;
+
+            // Device combo box settings
+            cboChannel.DropDownStyle = ComboBoxStyle.DropDownList;
+            cboChannel.Items.AddRange(
+                DaqSystem.Local.GetPhysicalChannels(
+                    PhysicalChannelTypes.AO, PhysicalChannelAccess.External));
+            if (cboChannel.Items.Count > 0)
+            {
+                cboChannel.SelectedIndex = 0;
+            }
+            else
+            {
+                MessageBox.Show("There are no analog output channels available.");
+                SetUserInputPermissions(false);
+            }
+        }
+
+        private void BtnStartStop_Click(object sender, EventArgs e)
+        {
+            switch (funcGen.On)
+            {
+                case true:
+                    BtnStartStopToggle(false);
+                    funcGen.Stop();
+                    break;
+                case false:
+                    BtnStartStopToggle(true);
+                    funcGen.Start(cboChannel.SelectedItem.ToString());
+                    break;
+            }
+        }
+
+        private void InputChanged()
+        {
+            // Generate waveform
+            funcGen.GenerateWaveform();
+
+            // Put waveform on plot
+            chWaveform.Series["Waveform"].Points.Clear();
+            for (int i = 0; i < funcGen.WaveData.Length; i++)
+            {
+                chWaveform.Series["Waveform"].Points.Add(funcGen.WaveData[i]);
+            }
+
+            // Update visible outputs
+            lblActualFrequencyNum.Text = $"{funcGen.ActualFrequency:0.0000} Hz";
+
+            // Update waveform output if necessary
+            if (funcGen.On == true)
+            {
+                funcGen.Stop();
+                funcGen.Start(cboChannel.SelectedItem.ToString());
+            }
         }
 
         private void BtnStartStopToggle(bool startStop)
@@ -163,21 +200,6 @@ namespace DAQFunctionGenerator
             InputChanged();
         }
 
-        private void InputChanged()
-        {
-            funcGen.GenerateWaveform();
-            
-            // Graphing
-            chWaveform.Series["Waveform"].Points.Clear();
-            for (int i = 0; i < funcGen.WaveData.Length; i++)
-            {
-                chWaveform.Series["Waveform"].Points.Add(funcGen.WaveData[i]);
-            }
-
-            // Value output
-            lblActualFrequencyNum.Text = $"{funcGen.ActualFrequency:0.0000} Hz";
-        }
-
         private void UpdFrequency_ValueChanged(object sender, EventArgs e)
         {
             funcGen.Frequency = (int)updFrequency.Value;
@@ -200,21 +222,6 @@ namespace DAQFunctionGenerator
         {
             funcGen.DCOffset = (double)updDCOffset.Value;
             InputChanged();
-        }
-
-        private void BtnStartStop_Click(object sender, EventArgs e)
-        {
-            switch (funcGen.On)
-            {
-                case true:
-                    BtnStartStopToggle(false);
-                    funcGen.Stop(analogWriteTask);
-                    break;
-                case false:
-                    BtnStartStopToggle(true);
-                    funcGen.Start(analogWriteTask, cboChannel.SelectedItem.ToString());
-                    break;
-            }
         }
     }
 }

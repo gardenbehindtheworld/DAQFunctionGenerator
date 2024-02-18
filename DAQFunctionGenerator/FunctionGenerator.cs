@@ -5,13 +5,19 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace DAQFunctionGenerator
 {
     internal class FunctionGenerator
     {
-        public static double MAX_AD_RATE = 833000.0; // from datasheet
-        public static int MAX_SAMPLE_COUNT = 10000; // for performance reasons
+        public static double MAX_AD_RATE = 833000.0; // from daq specs
+        public static int MAX_SAMPLE_COUNT = 8191; // from daq specs
+
+        private static NationalInstruments.DAQmx.Task AOTask =
+            new NationalInstruments.DAQmx.Task();
+        private static AnalogSingleChannelWriter writer =
+            new AnalogSingleChannelWriter(AOTask.Stream);
 
         public string Device { get; set; }
         public double Amplitude { get; set; }
@@ -43,17 +49,44 @@ namespace DAQFunctionGenerator
 
         /* Begin outputting signal to given channel
          */
-        public void Start(NationalInstruments.DAQmx.Task aoTask, string channel)
+        public void Start(string channel)
         {
             this.On = true;
-            aoTask.AOChannels.CreateVoltageChannel(channel, string.Empty,
-                this.MinimumVoltage, this.MaximumVoltage, AOVoltageUnits.Volts);
+            try
+            {
+                AOTask.AOChannels.CreateVoltageChannel(channel, string.Empty,
+                    this.MinimumVoltage, this.MaximumVoltage, AOVoltageUnits.Volts);
+
+                /* Configure task
+                 *  This must be done at this point rather than immediately after
+                 *  creating the task because the device must be known
+                 *  and channels must be present.
+                 */
+                AOTask.Timing.SampleTimingType = SampleTimingType.SampleClock;
+                AOTask.Timing.SampleQuantityMode = SampleQuantityMode.ContinuousSamples;
+                AOTask.AOChannels.All.UseOnlyOnBoardMemory = true;
+
+                writer.WriteMultiSample(false, this.WaveData);
+            }
+            catch (DaqException ex) 
+            {
+                if (ex.Error != -200489)
+                {
+                    /* -200489: "Specified channel cannot be added to the task,
+                     *  because a channel with the same name is already in the task."
+                     * This error occurs when the output is started for a second time
+                     *  on the same channel, which is acceptable.
+                     */
+                    AOTask.Stop();
+                    MessageBox.Show(ex.Message);
+                }
+            }
         }
 
-        public void Stop(NationalInstruments.DAQmx.Task aoTask)
+        public void Stop()
         {
             this.On = false;
-            aoTask.Stop();
+            AOTask.Stop();
         }
 
         public void GenerateWaveform()
@@ -63,7 +96,7 @@ namespace DAQFunctionGenerator
             this.Wavelength = 1.0 / this.Frequency;
             this.ActualFrequency = MAX_AD_RATE / this.SampleCount;
             this.MinimumVoltage = -this.Amplitude + this.DCOffset < -10.0 ?
-                -10.0 : this.Amplitude + this.DCOffset;
+                -10.0 : -this.Amplitude + this.DCOffset;
             this.MaximumVoltage = this.Amplitude + this.DCOffset > 10.0 ?
                 10.0 : this.Amplitude + this.DCOffset;
 
