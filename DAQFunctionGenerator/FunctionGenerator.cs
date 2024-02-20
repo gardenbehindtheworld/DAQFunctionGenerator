@@ -22,7 +22,12 @@ namespace DAQFunctionGenerator
         public string Device { get; set; }
         public double Amplitude { get; set; }
         public double DCOffset { get; set; }
-        public int DutyCycle { get; set; }
+        private double dutyCycle;
+        public double DutyCycle
+        {
+            get { return dutyCycle; } 
+            set { dutyCycle = CalcActualDutyCycle(value); }
+        }
         public WaveShape WaveShape { get; set; }
         public int Frequency { get; set; }
         public bool On { get; set; }
@@ -41,7 +46,7 @@ namespace DAQFunctionGenerator
             this.Device = string.Empty;
             this.Amplitude = 1.0;
             this.DCOffset = 0.0;
-            this.DutyCycle = 50;
+            this.DutyCycle = 50.0;
             this.WaveShape = WaveShape.Sine;
             this.Frequency = 100;
             this.On = false;
@@ -194,13 +199,9 @@ namespace DAQFunctionGenerator
             double A = this.Amplitude;
 
             if (i < lambda*d)
-            {
                 return 2 * A * i / d / lambda - A + this.DCOffset;
-            }
             else
-            {
                 return A * (2 / (1 - d) * (1 - i / lambda) - 1) + this.DCOffset;
-            }
         }
 
         // Calculates single point of sawtooth function
@@ -215,6 +216,33 @@ namespace DAQFunctionGenerator
             if (i < this.SampleCount * (double)this.DutyCycle / 100)
                 return 5.0;
             else return 0.0;
+        }
+
+        /* Determines the closest duty cycle to a precision appropriate
+         *  to the number of data points, to a maximum precision of 0.1%
+         */
+        public double CalcActualDutyCycle(double dutyCycle)
+        {
+            double increment = 100.0 / this.SampleCount;
+
+            if (increment <= 0.1)
+            {
+                return dutyCycle;
+            }
+            else
+            {
+                int nearestIncrement = (int)Math.Round(dutyCycle / increment);
+
+                /* Clamp the increment such that the duty cycle change point
+                 *  can't be at the endpoints (first or last sample)
+                 */
+                if (nearestIncrement < 1)
+                    nearestIncrement = 1;
+                else if (nearestIncrement >= this.SampleCount)
+                    nearestIncrement = this.SampleCount - 1;
+
+                return increment * nearestIncrement;
+            }
         }
     }
 

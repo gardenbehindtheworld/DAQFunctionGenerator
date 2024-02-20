@@ -23,7 +23,6 @@ namespace DAQFunctionGenerator
          */
         private FunctionGenerator funcGen = new FunctionGenerator();
 
-
         public Frm1()
         {
             InitializeComponent();
@@ -31,7 +30,6 @@ namespace DAQFunctionGenerator
 
         private void Frm1_Load(object sender, EventArgs e)
         {
-
             BtnStartStopToggle(false);
 
             // Chart setup
@@ -60,11 +58,11 @@ namespace DAQFunctionGenerator
             updDCOffset.Increment = 0.01M;
 
             // Duty Cycle updown box settings
-            updDutyCycle.Value = funcGen.DutyCycle;
-            updDutyCycle.DecimalPlaces = 0;
+            updDutyCycle.Value = 50.0M;
+            updDutyCycle.DecimalPlaces = 1;
             updDutyCycle.Minimum = 1;
             updDutyCycle.Maximum = 99;
-            updDutyCycle.Increment = 1;
+            updDutyCycle.Increment = 0.1M;
 
             // Waveform combo box settings
             cboWaveform.DropDownStyle = ComboBoxStyle.DropDownList;
@@ -137,6 +135,7 @@ namespace DAQFunctionGenerator
                 funcGen.Stop();
                 funcGen.Start(cboChannel.SelectedItem.ToString());
             }
+            Debug.WriteLine(funcGen.DutyCycle);
         }
 
         private void BtnStartStopToggle(bool startStop)
@@ -209,6 +208,7 @@ namespace DAQFunctionGenerator
 
         private void UpdDutyCycle_ValueChanged(object sender, EventArgs e)
         {
+
             funcGen.DutyCycle = (int)updDutyCycle.Value;
             InputChanged();
         }
