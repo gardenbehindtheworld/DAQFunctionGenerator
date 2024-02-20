@@ -191,22 +191,15 @@ namespace DAQFunctionGenerator
         {
             double d = (double)this.DutyCycle / 100;
             double lambda = this.SampleCount;
-            double r = d * lambda;
             double A = this.Amplitude;
-            double t1 = r / 2;
-            double t3 = lambda - t1;
 
-            if (i < t1)
+            if (i < lambda*d)
             {
-                return 2 * A / r * i + this.DCOffset;
-            }
-            else if (i < t3)
-            {
-                return - 2 * A / (lambda - r) * i + A / (1 - d) + this.DCOffset;
+                return 2 * A * i / d / lambda - A + this.DCOffset;
             }
             else
             {
-                return 2 * A / r * i - 2 * A / d + this.DCOffset;
+                return A * (2 / (1 - d) * (1 - i / lambda) - 1) + this.DCOffset;
             }
         }
 
