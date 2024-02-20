@@ -31,6 +31,7 @@ namespace DAQFunctionGenerator
 
         private void Frm1_Load(object sender, EventArgs e)
         {
+
             BtnStartStopToggle(false);
 
             // Chart setup
@@ -41,7 +42,7 @@ namespace DAQFunctionGenerator
             chWaveform.Series["Waveform"].BorderWidth = 3;
             chWaveform.Series["Waveform"].Color = Color.BlueViolet;
             chWaveform.Legends.Clear();
-            chWaveform.ChartAreas[0].AxisX.Title = "Sample number";
+            chWaveform.ChartAreas[0].AxisX.Title = "Time (s)";
             chWaveform.ChartAreas[0].AxisY.Title = "Voltage (V)";
 
             // Amplitude updown box settings
@@ -109,8 +110,7 @@ namespace DAQFunctionGenerator
                     break;
                 case false:
                     BtnStartStopToggle(true);
-                    funcGen.Start(cboChannel.Items.Cast<string>().ToArray(),
-                        cboChannel.SelectedIndex);
+                    funcGen.Start(cboChannel.SelectedItem.ToString());
                     break;
             }
         }
@@ -134,8 +134,7 @@ namespace DAQFunctionGenerator
             if (funcGen.On == true)
             {
                 funcGen.Stop();
-                funcGen.Start(cboChannel.Items.Cast<string>().ToArray(),
-                    cboChannel.SelectedIndex);
+                funcGen.Start(cboChannel.SelectedItem.ToString());
             }
         }
 
@@ -169,7 +168,7 @@ namespace DAQFunctionGenerator
 
         private void CboChannel_SelectedIndexChanged(object sender, EventArgs e)
         {
-            InputChanged();
+
         }
 
         private void CboWaveform_SelectedIndexChanged(object sender, EventArgs e)

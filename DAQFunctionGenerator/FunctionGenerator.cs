@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Runtime.Remoting.Channels;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -17,8 +16,8 @@ namespace DAQFunctionGenerator
 
         private static NationalInstruments.DAQmx.Task AOTask =
             new NationalInstruments.DAQmx.Task();
-        private static AnalogMultiChannelWriter writer =
-            new AnalogMultiChannelWriter(AOTask.Stream);
+        private static AnalogSingleChannelWriter writer =
+            new AnalogSingleChannelWriter(AOTask.Stream);
 
         public string Device { get; set; }
         public double Amplitude { get; set; }
@@ -36,6 +35,7 @@ namespace DAQFunctionGenerator
         private double MinimumVoltage;
         private double MaximumVoltage;
 
+
         public FunctionGenerator() {
             // Set default settings
             this.Device = string.Empty;
@@ -47,33 +47,27 @@ namespace DAQFunctionGenerator
             this.On = false;
         }
 
-        /* Begin outputting signal to given channel.
-         * If channels have not been added yet, use parameter channelArray to add
-         *  all available channels.
+        /* Begin outputting signal to given channel
          */
-        public void Start(string[] channelArray, int channelIndex)
+        public void Start(string channel)
         {
             this.On = true;
-            foreach (string channel in channelArray)
+            try
             {
-                try
-                {
-                    // Add new channel if necessary
-                    AOTask.AOChannels.CreateVoltageChannel(channel, string.Empty,
+                AOTask.AOChannels.CreateVoltageChannel(channel, string.Empty,
                     this.MinimumVoltage, this.MaximumVoltage, AOVoltageUnits.Volts);
-                }
-                catch (DaqException ex)
+            }
+            catch (DaqException ex) 
+            {
+                if (ex.Error != -200489)
                 {
-                    if (ex.Error != -200489)
-                    {
-                        /* -200489: "Specified channel cannot be added to the task,
-                         *  because a channel with the same name is already in the task."
-                         * This error occurs when the output is started for a second time
-                         *  on the same channel, which is acceptable.
-                         */
-                        this.Stop();
-                        MessageBox.Show(ex.Message);
-                    }
+                    /* -200489: "Specified channel cannot be added to the task,
+                     *  because a channel with the same name is already in the task."
+                     * This error occurs when the output is started for a second time
+                     *  on the same channel, which is acceptable.
+                     */
+                    this.Stop();
+                    MessageBox.Show(ex.Message);
                 }
             }
 
@@ -93,16 +87,12 @@ namespace DAQFunctionGenerator
                     this.SampleCount);
                 AOTask.Timing.SamplesPerChannel = this.SampleCount;
 
-                // Reconfigure existing channels
+                // Reconfigure channel
                 AOTask.AOChannels.All.Minimum = this.MinimumVoltage;
                 AOTask.AOChannels.All.Maximum = this.MaximumVoltage;
 
-                // Create a multi-channel array to the size of the current output channels
-                double[,] multiChannelData = new double[channelArray.Length, this.WaveData.Length];
-                multiChannelData.SetValue(WaveData, channelIndex);
-
                 // Finally, output waveform to DAQ
-                writer.WriteMultiSample(false, multiChannelData);
+                writer.WriteMultiSample(false, this.WaveData);
                 AOTask.Start();
             }
             catch (DaqException ex)
@@ -232,18 +222,6 @@ namespace DAQFunctionGenerator
             if (i < this.SampleCount * (double)this.DutyCycle / 100)
                 return 5.0;
             else return 0.0;
-        }
-
-        /* Public method that allows channels to be added to the Task
-         *  from the Form where channels are displayed.
-         */
-        public void AddChannels(string[] channelArray)
-        {
-            foreach (string channel in channelArray)
-            {
-                AOTask.AOChannels.CreateVoltageChannel(channel, string.Empty,
-                    this.MinimumVoltage, this.MaximumVoltage, AOVoltageUnits.Volts);
-            }
         }
     }
 
