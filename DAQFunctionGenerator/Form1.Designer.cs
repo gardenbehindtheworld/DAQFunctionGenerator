@@ -270,6 +270,7 @@
             this.Controls.Add(this.cboChannel);
             this.Name = "Frm1";
             this.Text = "Function Generator";
+            this.FormClosed += new System.Windows.Forms.FormClosedEventHandler(this.Frm1_FormClosed);
             this.Load += new System.EventHandler(this.Frm1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.updAmplitude)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.updDCOffset)).EndInit();

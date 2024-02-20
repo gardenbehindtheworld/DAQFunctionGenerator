@@ -113,6 +113,8 @@ namespace DAQFunctionGenerator
             AOTask.Stop();
             AnalogSingleChannelWriter zeroWriter = new AnalogSingleChannelWriter(AOTask.Stream);
             AOTask.AOChannels.All.UseOnlyOnBoardMemory = false;
+            AOTask.AOChannels.All.Minimum = -1.0;
+            AOTask.AOChannels.All.Maximum = 1.0;
             zeroWriter.WriteMultiSample(false, new double[] { 0, 0, 0 });
             AOTask.Start();
             AOTask.Stop();

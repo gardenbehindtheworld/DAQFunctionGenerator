@@ -223,5 +223,9 @@ namespace DAQFunctionGenerator
             funcGen.DCOffset = (double)updDCOffset.Value;
             InputChanged();
         }
+
+        private void Frm1_FormClosed(object sender, FormClosedEventArgs e)
+        {
+        }
     }
 }
