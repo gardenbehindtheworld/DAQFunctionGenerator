@@ -40,7 +40,7 @@ namespace DAQFunctionGenerator
             chWaveform.Series["Waveform"].BorderWidth = 3;
             chWaveform.Series["Waveform"].Color = Color.BlueViolet;
             chWaveform.Legends.Clear();
-            chWaveform.ChartAreas[0].AxisX.Title = "Time (s)";
+            chWaveform.ChartAreas[0].AxisX.Title = "Sample number";
             chWaveform.ChartAreas[0].AxisY.Title = "Voltage (V)";
 
             // Amplitude updown box settings
