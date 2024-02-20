@@ -109,6 +109,7 @@ namespace DAQFunctionGenerator
                     funcGen.Stop();
                     break;
                 case false:
+                    cboChannel.Enabled = false;
                     BtnStartStopToggle(true);
                     funcGen.Start(cboChannel.SelectedItem.ToString());
                     break;
@@ -146,7 +147,7 @@ namespace DAQFunctionGenerator
                     btnStartStop.Text = "Running";
                     btnStartStop.BackColor = Color.LightGreen;
                     break;
-                default:
+                case false:
                     btnStartStop.Text = "Stopped";
                     btnStartStop.BackColor = Color.Red;
                     break;
