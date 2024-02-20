@@ -226,6 +226,7 @@ namespace DAQFunctionGenerator
 
         private void Frm1_FormClosed(object sender, FormClosedEventArgs e)
         {
+            funcGen.Stop();
         }
     }
 }
