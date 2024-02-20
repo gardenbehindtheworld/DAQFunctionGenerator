@@ -86,7 +86,7 @@ namespace DAQFunctionGenerator
                 AOTask.Timing.SampleTimingType = SampleTimingType.SampleClock;
                 AOTask.AOChannels.All.UseOnlyOnBoardMemory = true;
                 AOTask.Timing.ConfigureSampleClock(string.Empty,
-                    this.Frequency * this.SampleCount,
+                    this.ActualFrequency * this.SampleCount,
                     SampleClockActiveEdge.Rising,
                     SampleQuantityMode.ContinuousSamples,
                     this.SampleCount);
