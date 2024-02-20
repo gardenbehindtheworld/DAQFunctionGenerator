@@ -135,7 +135,6 @@ namespace DAQFunctionGenerator
                 funcGen.Stop();
                 funcGen.Start(cboChannel.SelectedItem.ToString());
             }
-            Debug.WriteLine(funcGen.DutyCycle);
         }
 
         private void BtnStartStopToggle(bool startStop)

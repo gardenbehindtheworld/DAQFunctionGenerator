@@ -127,6 +127,9 @@ namespace DAQFunctionGenerator
             this.Wavelength = 1.0 / this.Frequency;
             this.ActualFrequency = MAX_AD_RATE / this.SampleCount;
 
+            // Duty cycle may need updating
+            this.DutyCycle = this.DutyCycle;
+
             /* Determine an appropriate min and max voltage, clipped to +/- 10.0V.
              * This is used for the channel configuration when outputting.
              * TTL needs a special case of min and max voltage,
@@ -236,7 +239,7 @@ namespace DAQFunctionGenerator
                 /* Clamp the increment such that the duty cycle change point
                  *  can't be at the endpoints (first or last sample)
                  */
-                if (nearestIncrement < 1)
+                if (nearestIncrement < 1 && this.WaveShape == WaveShape.Triangle)
                     nearestIncrement = 1;
                 else if (nearestIncrement >= this.SampleCount)
                     nearestIncrement = this.SampleCount - 1;
